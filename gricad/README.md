@@ -2,7 +2,7 @@
 
 ## Table of contents
 
-1. [First steps (mandatory)](#first-steps)
+1. [First steps (mandatory)](#first-steps-do-it-once)
 2. [General Informations](#general-informations)
 3. [Compute on dahu or bigfoot](#compute-on-dahu-or-bigfoot)
 4. [Tools and computing environment](#tools-and-computing-environment)
@@ -67,83 +67,73 @@ Host *.ciment
  * same architecture for another scratch workspace called silenus instead of bettik
 
 ---
-## Get computing ressources 
+## Ask for computing ressources 
 
 * You are actually sitting on login nodes (dahu-f or bigfoot), to do some computation you will need to request some computing nodes, CPU nodes on dahu, GPU nodes on bigfoot
-* You do that by either [launching your script inside a job](#first-steps)  or ask for interactive access to a computing node :
+* You do that by either [submitting your script inside a job](#submitted-script-inside-a-job) or ask for [interactive access to a computing node](#interactive-computing) :
+
+### Submitted script inside a job
+
+* Write the following bash script in a file ```job.ksh```.
+* Make sure your job script is executable ```chmod +x job.ksh``` and then launch it with ```oarsub /path/to/the/job.ksh``` or ```oarsub -S ./job.ksh``` if you are in the directory.
+* Maximum time limit on dahu is 2 days.
+* For more informations about jobs read https://gricad-doc.univ-grenoble-alpes.fr/en/hpc/joblaunch/
+  
+* If your code is not in the production phase yet, you can ask to test it first on a development queue by adding the option ```-t devel``` to your oarsub command or in your job with a maximum time limit of 30 minutes 
+* Another useful queue is the fat one (option ```-t fat``` and provide access to nodes with a total of 1.5Tb of RAM per node)
+* A queue called visu is also available
+
+#### dahu
+
+```
+ #!/bin/bash
+
+#OAR -n jobname
+#OAR -l /nodes=2/core=1,walltime=00:01:30
+#OAR --stdout jobname.out%jobid
+#OAR --stderr jobname.err%jobid
+#OAR --project data-ocean
+
+yourscript
+```
+
+#### bigfoot
+
+```
+#!/bin/bash
+#OAR -n jobname
+#OAR -l /nodes=1/gpu=1,walltime=01:00:00
+#OAR -p gpumodel='V100' and mem_per_gpu > 40
+#OAR --stdout jobname.%jobid%.out
+#OAR --stderr jobname.%jobid%.err
+#OAR --project data-ocean 
+
+yourscript
+```
 
 ### Interactive computing 
-### dahu 
+* Execute the following bash command in a terminal.
+* When your request is granted you will be connected to a specific dahu/bigfoot node and you will be able to compute there.
+* Maximum walltime limit is 12 hours.
 
-
+#### dahu 
 
 ```oarsub -l /nodes=1/core=16,walltime=03:30:00 --project pr-data-ocean -I```
 
- * When your request is granted you will be connected to a specific dahu/bigfoot node and you will be able to compute there.
- * Maximum time limit is 12 hours
- * The memory allocated to your request is nb_cores_requested*node_memory/nb_cores_per_node, for instance on a classical dahu node there is a total of 192Gb per node, if you ask for 16 cores you will be granted 96Gb, on a fat node a total of 1.5Tb is available (check node properties with recap.py)
+* The memory allocated to your request is nb_cores_requested*node_memory/nb_cores_per_node, for instance on a classical dahu node there is a total of 192Gb per node, if you ask for 16 cores you will be granted 96Gb
+* A fat node with total of 1.5Tb is available with command ```-t fat``` (check node properties with recap.py)
 
+#### bigfoot 
 
-#### Submitted script 
+```oarsub -l /nodes=1/gpu=1,walltime=08:00:00  --project data-ocean -p "gpumodel='V100' and mem_per_gpu > 40" -I```
 
-```
- #!/bin/bash
+* The memory allocated to your GPU is specified with ```mem_per_gpu```.
+* You can sepcify the GPU model with ```gpumodel```(A100 or V100) 
 
-#OAR -n jobname
-#OAR -l /nodes=2/core=1,walltime=00:01:30
-#OAR --stdout jobname.out%jobid
-#OAR --stderr jobname.err%jobid
-#OAR --project data-ocean
+### General commands 
 
-yourscript
-```
-* Make sure your job script is executable ```chmod +x job.ksh``` and then launch it with ```oarsub /path/to/the/job.ksh``` (you have to provide absolute path or be in the directory and type : ```oarsub -S ./job.ksh```
-
- * You can check the status of your job with ```oarstat -u yourlogin``` and kill your job if needed with ```oardel jobid``` with jobid being the first number in the result of oarsat
-
- * Maximum time limit on dahu is 2 days
- 
- * If your code is not in the production phase yet, you can ask to test it first on a development queue by adding the option ```-t devel``` to your oarsub command or in your job with a maximum time limit of 30 minutes 
- 
- * Another useful queue is the fat one (option ```-t fat```and provide access to nodes with a total of 1.5Tb of RAM per node)
- *  A queue called visu is also available
- 
- * For more informations about jobs read https://gricad-doc.univ-grenoble-alpes.fr/en/hpc/joblaunch/
-
-### bigfoot
-
-  
-
-<details>
-<summary>An example for interactive computing</summary>
- 
- ```oarsub -l /nodes=1/core=16,walltime=03:30:00 --project pr-data-ocean -I```
- 
-</details>
-
-
-<details>
-<summary>An example job</summary>
- 
- ```
- #!/bin/bash
-
-#OAR -n jobname
-#OAR -l /nodes=2/core=1,walltime=00:01:30
-#OAR --stdout jobname.out%jobid
-#OAR --stderr jobname.err%jobid
-#OAR --project data-ocean
-
-yourscript
-```
- 
-</details>
-
-
-### See availability of dahu/bigfoot nodes : 
-
- * Command ```chandler``` in the terminal or go to the website : https://ciment-grid.univ-grenoble-alpes.fr/clusters/dahu/monika for instaneous availablity or https://ciment-grid.univ-grenoble-alpes.fr/clusters/dahu/drawgantt/drawgantt.php for availability over time (history and forecast)
- 
+* To see the availability of the cluster use the command ```chandler``` in the terminal or go to the website : https://ciment-grid.univ-grenoble-alpes.fr/clusters/dahu/monika for instaneous availablity or https://ciment-grid.univ-grenoble-alpes.fr/clusters/dahu/drawgantt/drawgantt.php for availability over time (history and forecast)
+* You can check the status of your job with ```oarstat -u yourlogin``` and kill your job if needed with ```oardel jobid``` with jobid being the first number in the result of ```oarstat```. 
 ---
 
 ## Tools and computing environment
