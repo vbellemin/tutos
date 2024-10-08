@@ -2,7 +2,7 @@
 
 ## Table of contents
 
-1. [First steps](#first-steps)
+1. [First steps (mandatory)](#first-steps)
 2. [General Informations](#general-informations)
 3. [Compute on dahu or bigfoot](#compute-on-dahu-or-bigfoot)
 4. [Tools and computing environment](#tools-and-computing-environment)
@@ -21,7 +21,7 @@
 
 * The connections to the clusters go through a bastion, so if you want to access dahu (for CPU) or bigfoot (for GPU) you first have to connect to rotule or trinity :
  - first ```ssh yourlogin@rotule.univ-grenoble-alpes.fr```  or ```ssh yourlogin@trinity.univ-grenoble-alpes.fr```
- - then ```ssh dahu or ssh bigfoot```
+ - then ```ssh dahu``` or ```ssh bigfoot```
 
 * To avoid doing these steps each time you want to connect, add the following lines to your ```.ssh/config``` :
 
@@ -67,12 +67,52 @@ Host *.ciment
  * same architecture for another scratch workspace called silenus instead of bettik
 
 ---
-## Compute on dahu or bigfoot
+## Get computing ressources 
 
-### Submitting jobs
+* You are actually sitting on login nodes (dahu-f or bigfoot), to do some computation you will need to request some computing nodes, CPU nodes on dahu, GPU nodes on bigfoot
+* You do that by either [launching your script inside a job](#first-steps)  or ask for interactive access to a computing node :
 
-  * You are actually sitting on login nodes (dahu-f or bigfoot), to do some computation you will need to request some computing nodes, CPU nodes on dahu, GPU nodes on bigfoot
-  * You do that by either launching your script inside a job or ask for interactive access to a computing node :
+### Interactive computing 
+### dahu 
+
+
+
+```oarsub -l /nodes=1/core=16,walltime=03:30:00 --project pr-data-ocean -I```
+
+ * When your request is granted you will be connected to a specific dahu/bigfoot node and you will be able to compute there.
+ * Maximum time limit is 12 hours
+ * The memory allocated to your request is nb_cores_requested*node_memory/nb_cores_per_node, for instance on a classical dahu node there is a total of 192Gb per node, if you ask for 16 cores you will be granted 96Gb, on a fat node a total of 1.5Tb is available (check node properties with recap.py)
+
+
+#### Submitted script 
+
+```
+ #!/bin/bash
+
+#OAR -n jobname
+#OAR -l /nodes=2/core=1,walltime=00:01:30
+#OAR --stdout jobname.out%jobid
+#OAR --stderr jobname.err%jobid
+#OAR --project data-ocean
+
+yourscript
+```
+* Make sure your job script is executable ```chmod +x job.ksh``` and then launch it with ```oarsub /path/to/the/job.ksh``` (you have to provide absolute path or be in the directory and type : ```oarsub -S ./job.ksh```
+
+ * You can check the status of your job with ```oarstat -u yourlogin``` and kill your job if needed with ```oardel jobid``` with jobid being the first number in the result of oarsat
+
+ * Maximum time limit on dahu is 2 days
+ 
+ * If your code is not in the production phase yet, you can ask to test it first on a development queue by adding the option ```-t devel``` to your oarsub command or in your job with a maximum time limit of 30 minutes 
+ 
+ * Another useful queue is the fat one (option ```-t fat```and provide access to nodes with a total of 1.5Tb of RAM per node)
+ *  A queue called visu is also available
+ 
+ * For more informations about jobs read https://gricad-doc.univ-grenoble-alpes.fr/en/hpc/joblaunch/
+
+### bigfoot
+
+  
 
 <details>
 <summary>An example for interactive computing</summary>
@@ -80,10 +120,6 @@ Host *.ciment
  ```oarsub -l /nodes=1/core=16,walltime=03:30:00 --project pr-data-ocean -I```
  
 </details>
-
- * When your request is granted you will be connected to a specific dahu/bigfoot node and you will be able to compute there.
- * Maximum time limit is 12 hours
- * The memory allocated to your request is nb_cores_requested*node_memory/nb_cores_per_node, for instance on a classical dahu node there is a total of 192Gb per node, if you ask for 16 cores you will be granted 96Gb, on a fat node a total of 1.5Tb is available (check node properties with recap.py)
 
 
 <details>
@@ -103,18 +139,6 @@ yourscript
  
 </details>
 
- * Make sure your job script is executable ```chmod +x job.ksh``` and then launch it with ```oarsub /path/to/the/job.ksh``` (you have to provide absolute path or be in the directory and type : ```oarsub -S ./job.ksh```
-
- * You can check the status of your job with ```oarstat -u yourlogin``` and kill your job if needed with ```oardel jobid``` with jobid being the first number in the result of oarsat
-
- * Maximum time limit on dahu is 2 days
- 
- * If your code is not in the production phase yet, you can ask to test it first on a development queue by adding the option ```-t devel``` to your oarsub command or in your job with a maximum time limit of 30 minutes 
- 
- * Another useful queue is the fat one (option ```-t fat```and provide access to nodes with a total of 1.5Tb of RAM per node)
- *  A queue called visu is also available
- 
- * For more informations about jobs read https://gricad-doc.univ-grenoble-alpes.fr/en/hpc/joblaunch/
 
 ### See availability of dahu/bigfoot nodes : 
 
